@@ -19,6 +19,7 @@ import { fetchNaverInvestor } from "@/lib/naver-investor";
 import { fetchYahooQuote } from "@/lib/yahoo-finance";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const MARKET_LABEL: Record<string, string> = {
   Y: "KOSPI",

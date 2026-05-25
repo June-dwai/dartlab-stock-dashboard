@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchNaverInvestor } from "@/lib/naver-investor";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 export async function GET(
   _req: NextRequest,

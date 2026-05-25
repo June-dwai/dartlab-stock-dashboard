@@ -43,6 +43,25 @@ DART_API_KEY=발급받은_DART_OpenAPI_키
 
 DART 키 없이도 폼 수동 입력은 동작하지만, "데이터 갱신" 자동 조회 기능은 키가 있어야 작동합니다. Yahoo와 Naver는 키 없이 동작합니다.
 
+## Vercel 배포 (선택)
+
+GitHub repo와 Vercel을 연결하면 push할 때마다 자동 배포됩니다.
+
+1. https://vercel.com/new 접속 (GitHub 계정으로 로그인)
+2. `Import Git Repository` → 이 저장소 선택
+3. **Environment Variables**에 추가:
+   - Key: `DART_API_KEY`
+   - Value: 본인의 DART OpenAPI 인증키
+4. **Deploy** 클릭
+
+배포 후 발급되는 `*.vercel.app` 도메인에서 바로 사용 가능합니다.
+다음부터는 `git push`만 하면 Vercel이 자동으로 빌드·배포합니다.
+
+### 주의
+
+- **Yahoo Finance · Naver 스크래핑**은 Vercel의 데이터센터 IP가 일부 차단될 수 있습니다 (로컬에선 OK라도). 그 경우 수급 데이터/PER·PBR 자동 계산이 안 될 수 있습니다.
+- `/api/dart/fetch`는 DART 4건 + Yahoo 1건 + Naver 1건을 병렬 호출하느라 10초를 넘길 수 있어 `maxDuration=60`으로 설정돼 있습니다 (Hobby 플랜 한도).
+
 ## 기술 스택
 
 - Next.js 16 (App Router, Turbopack)
