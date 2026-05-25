@@ -28,6 +28,20 @@ const MARKET_LABEL: Record<string, string> = {
   E: "기타",
 };
 
+function withSoftTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  fallback: T,
+): Promise<T> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(fallback), ms);
+    promise
+      .then((value) => resolve(value))
+      .catch(() => resolve(fallback))
+      .finally(() => clearTimeout(timer));
+  });
+}
+
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("query")?.trim();
   if (!query) {
@@ -99,8 +113,8 @@ export async function GET(request: NextRequest) {
 
     const stockCode = corp.stock_code?.trim() || "";
     const [yahooQuote, investorActivity] = await Promise.all([
-      stockCode ? fetchYahooQuote(stockCode, market).catch(() => null) : Promise.resolve(null),
-      stockCode ? fetchNaverInvestor(stockCode).catch(() => null) : Promise.resolve(null),
+      stockCode ? withSoftTimeout(fetchYahooQuote(stockCode, market), 9_000, null) : Promise.resolve(null),
+      stockCode ? withSoftTimeout(fetchNaverInvestor(stockCode), 9_000, null) : Promise.resolve(null),
     ]);
     const yahooAsOf = yahooQuote?.asOf;
     const fallbackAsOf = today.toISOString().slice(0, 10).replace(/-/g, ".");

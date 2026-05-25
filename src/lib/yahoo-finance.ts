@@ -10,6 +10,7 @@ const Y_BROWSER_HEADERS = {
   Referer: "https://finance.yahoo.com/",
 } as const;
 const CRUMB_TTL_MS = 60 * 60 * 1000;
+const YAHOO_TIMEOUT_MS = 5_000;
 
 type Crumb = { crumb: string; cookieHeader: string; expiresAt: number };
 
@@ -32,6 +33,7 @@ async function getCrumb(): Promise<Crumb | null> {
       headers: { ...Y_BROWSER_HEADERS, Accept: "text/html" },
       redirect: "follow",
       cache: "no-store",
+      signal: AbortSignal.timeout(YAHOO_TIMEOUT_MS),
     });
     const cookieParts = extractSetCookies(seed.headers)
       .map((c) => c.split(";")[0]?.trim())
@@ -46,6 +48,7 @@ async function getCrumb(): Promise<Crumb | null> {
         Accept: "text/plain",
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(YAHOO_TIMEOUT_MS),
     });
     if (!crumbRes.ok) return null;
     const crumb = (await crumbRes.text()).trim();
@@ -115,6 +118,7 @@ async function tryQuoteSummary(symbol: string): Promise<YahooQuote | null> {
         Cookie: crumbData.cookieHeader,
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(YAHOO_TIMEOUT_MS),
     });
   } catch {
     return null;
@@ -157,6 +161,7 @@ async function tryChart(symbol: string): Promise<YahooQuote | null> {
     const res = await fetch(`https://query2.finance.yahoo.com/v8/finance/chart/${symbol}`, {
       headers: Y_BROWSER_HEADERS,
       cache: "no-store",
+      signal: AbortSignal.timeout(YAHOO_TIMEOUT_MS),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as ChartResponse;

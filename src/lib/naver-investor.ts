@@ -18,6 +18,7 @@ export type InvestorSummary = {
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
+const NAVER_TIMEOUT_MS = 6_000;
 
 function parseNumber(s: string): number | null {
   const cleaned = s.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, "").replace(/,/g, "").trim();
@@ -78,6 +79,7 @@ export async function fetchNaverInvestor(ticker: string): Promise<InvestorSummar
             Referer: `https://finance.naver.com/item/main.naver?code=${padded}`,
           },
           cache: "no-store",
+          signal: AbortSignal.timeout(NAVER_TIMEOUT_MS),
         },
       );
       if (!res.ok) {

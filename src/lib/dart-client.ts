@@ -6,6 +6,8 @@ import { XMLParser } from "fast-xml-parser";
 import type { FinancialRow, Maybe } from "./companies";
 
 const DART_BASE = "https://opendart.fss.or.kr/api";
+const DART_TIMEOUT_MS = 12_000;
+const CORP_CODE_TIMEOUT_MS = 20_000;
 
 export type CorpEntry = {
   corp_code: string;
@@ -63,7 +65,8 @@ async function loadCorpCache() {
     corpCachePromise = (async () => {
       const key = getKey();
       const response = await fetch(`${DART_BASE}/corpCode.xml?crtfc_key=${key}`, {
-        cache: "no-store",
+        next: { revalidate: 60 * 60 * 24 },
+        signal: AbortSignal.timeout(CORP_CODE_TIMEOUT_MS),
       });
       if (!response.ok) {
         throw new DartApiError(`corpCode 다운로드 실패: HTTP ${response.status}`);
@@ -136,7 +139,10 @@ type DartJsonResponse<T> = {
 async function callDart<T>(path: string, params: Record<string, string>): Promise<DartJsonResponse<T>> {
   const key = getKey();
   const qs = new URLSearchParams({ crtfc_key: key, ...params }).toString();
-  const response = await fetch(`${DART_BASE}/${path}?${qs}`, { cache: "no-store" });
+  const response = await fetch(`${DART_BASE}/${path}?${qs}`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(DART_TIMEOUT_MS),
+  });
   if (!response.ok) {
     throw new DartApiError(`DART HTTP ${response.status}`);
   }

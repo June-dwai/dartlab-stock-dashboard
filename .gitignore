@@ -45,3 +45,5 @@ next-env.d.ts
 
 # Claude Code per-user settings (keep launch.json shared)
 .claude/settings.local.json
+
+.vercel
