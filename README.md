@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DartLab
 
-## Getting Started
+한국 주식 통합 분석 대시보드. DART 공시 · Yahoo Finance 시세 · Naver 증권 수급을 한 화면에 모아 보여줍니다.
 
-First, run the development server:
+가족이 함께 종목을 추적하는 용도로 만들어졌습니다 (참고: 부모님께 설명하기 좋은 정리 + 자동 갱신).
+
+## 주요 기능
+
+- **종목별 통합 뷰**: 종목 하나를 선택하면 재무제표 · 주가 차트 · 가치지표(PER/PBR/ROE/부채비율) · 공시 · 외국인·기관 수급을 한 페이지에서 확인
+- **DART OpenAPI 자동 조회**: 종목명 또는 6자리 종목코드를 넣으면 회사 기본정보 · 재무제표(연 4년 + 분기 5개) · 최근 공시를 자동 수집
+- **Yahoo Finance 연계**: 현재가 · 시가총액 → DART 순이익/자본총계로 PER · PBR 직접 계산
+- **Naver 증권 수급**: 외국인 · 기관 일별 순매수 (최근 20거래일) + 주가 차트 PNG
+- **자동 등급/점수 산정**: ROE · 부채비율 · 매출성장률 · 영업이익률 가중합산으로 A~D 등급
+- **테마 관리**: 키워드 기반 자동 분류 (반도체/바이오/이차전지/...) + 수동 이동
+- **사용자 메모**: 회사별 자유 메모 + 특이사항 추가 (localStorage 저장)
+
+## 데이터 출처
+
+| 카테고리 | 소스 | 비고 |
+|---|---|---|
+| 회사 기본정보 / 재무제표 / 공시 | [DART OpenAPI](https://opendart.fss.or.kr) | API 키 필요 |
+| 시가총액 / 현재가 / 주가 차트 | Yahoo Finance · Naver 증권 | 키 불필요 |
+| 외국인 · 기관 일별 매매 | Naver 증권 | 키 불필요. 연기금 단독은 분리 불가 (기관 합계만) |
+
+## 설치 / 실행
 
 ```bash
+npm install
+cp .env.example .env.local
+# .env.local에 DART OpenAPI 키를 넣어주세요 (https://opendart.fss.or.kr 에서 발급)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+→ http://localhost:3000 접속
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 환경 변수
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`.env.local`:
 
-## Learn More
+```
+DART_API_KEY=발급받은_DART_OpenAPI_키
+```
 
-To learn more about Next.js, take a look at the following resources:
+DART 키 없이도 폼 수동 입력은 동작하지만, "데이터 갱신" 자동 조회 기능은 키가 있어야 작동합니다. Yahoo와 Naver는 키 없이 동작합니다.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 기술 스택
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Next.js 16 (App Router, Turbopack)
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
+- DART OpenAPI / Yahoo Finance / Naver 증권 (스크래핑)
 
-## Deploy on Vercel
+## 한계
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **연기금 단독 분리 불가**: 무료 데이터 소스는 외국인 + 기관 합계만 제공
+- **회사명 매칭 정확도**: DART의 fuzzy 매칭이 한자가 같은 다른 회사를 잡을 수 있음 (예: "현대" 키워드)
+- **테마 자동 분류**: 키워드/업종코드 기반 휴리스틱이라 일부 종목은 미분류로 떨어짐 (수동 이동 가능)
+- **TradingView 위젯 미사용**: KRX 라이선스 제약으로 차트 임베드 차단됨. 대신 Naver 차트 PNG 사용
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 데이터 저장
+
+모든 사용자 데이터(추가 종목 · 테마 · 메모)는 브라우저 **localStorage**에만 저장됩니다. 서버 DB 없음. 브라우저 변경 시 데이터 이전이 필요합니다.
+
+## 라이선스
+
+개인/학습 용도. 데이터 출처(DART/Yahoo/Naver)의 이용 약관을 준수해서 사용해주세요.
