@@ -3,6 +3,7 @@ import "server-only";
 import JSZip from "jszip";
 import { XMLParser } from "fast-xml-parser";
 
+import bundledCorpCodes from "./corp-codes.json";
 import type { FinancialRow, Maybe } from "./companies";
 
 const DART_BASE = "https://opendart.fss.or.kr/api";
@@ -59,8 +60,25 @@ let corpByStock: Map<string, CorpEntry> | null = null;
 let corpByName: Map<string, CorpEntry> | null = null;
 let corpCachePromise: Promise<void> | null = null;
 
+function setCorpMaps(entries: CorpEntry[]) {
+  const byStock = new Map<string, CorpEntry>();
+  const byName = new Map<string, CorpEntry>();
+  for (const entry of entries) {
+    const stock = (entry.stock_code ?? "").trim();
+    const name = (entry.corp_name ?? "").trim();
+    if (stock) byStock.set(stock, entry);
+    if (name) byName.set(name, entry);
+  }
+  corpByStock = byStock;
+  corpByName = byName;
+}
+
 async function loadCorpCache() {
   if (corpByStock && corpByName) return;
+  if (bundledCorpCodes.length > 0) {
+    setCorpMaps(bundledCorpCodes as CorpEntry[]);
+    return;
+  }
   if (!corpCachePromise) {
     corpCachePromise = (async () => {
       const key = getKey();
@@ -85,16 +103,7 @@ async function loadCorpCache() {
       const list = parsed?.result?.list ?? [];
       const arr = Array.isArray(list) ? list : [list];
 
-      const byStock = new Map<string, CorpEntry>();
-      const byName = new Map<string, CorpEntry>();
-      for (const e of arr) {
-        const stock = (e.stock_code ?? "").trim();
-        const name = (e.corp_name ?? "").trim();
-        if (stock) byStock.set(stock, e);
-        if (name) byName.set(name, e);
-      }
-      corpByStock = byStock;
-      corpByName = byName;
+      setCorpMaps(arr);
     })().catch((err) => {
       corpCachePromise = null;
       throw err;
